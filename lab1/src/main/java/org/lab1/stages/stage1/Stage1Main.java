@@ -8,7 +8,7 @@ public class Stage1Main {
     public static void main(String[] args) throws InterruptedException {
         long[] latencies = LoadGenerator.generate();
         MetricsCollector collector = new EmptySynchronizedMetricsCollector();
-        double median = Benchmark.measurePoint(collector, latencies, 8);
+        double median = Benchmark.measurePoint(collector, latencies, 2);
         System.out.println("Median: " + median);
     }
 }

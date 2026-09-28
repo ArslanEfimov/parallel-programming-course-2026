@@ -5,7 +5,7 @@ import org.lab1.shared.core.Snapshot;
 import org.lab1.shared.utils.PercentileCalculator;
 
 public class SynchronizedMetricsCollector implements MetricsCollector {
-    private final long[] buckets = new long[256];
+    private final long[] buckets = new long[BUCKETS_COUNT];
 
     private long count = 0;
     private long sum = 0;
@@ -14,7 +14,7 @@ public class SynchronizedMetricsCollector implements MetricsCollector {
 
     @Override
     public synchronized void record(long value) {
-        int bucket = (int) Math.min(value / 4, 255);
+        int bucket = (int) Math.min(value / 4, BUCKETS_COUNT - 1);
         buckets[bucket]++;
 
         count++;
