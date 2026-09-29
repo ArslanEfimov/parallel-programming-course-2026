@@ -72,7 +72,7 @@ public class InconsistencyTest {
         System.out.printf("Доля битых снимков (sum != count): %.2f%%%n\n", brokenSnapshots * 100.0 / SNAPSHOT_COUNT);
         System.out.printf("Снимок: sum < count: %d\n", sumOfBucketsLessThanCount);
         System.out.printf("Снимок: sum > count: %d\n", sumOfBucketsGreaterThanCount);
-        System.out.printf("Итоговый count − число вызовов (после join): %d\n", finalCount);
+        System.out.printf("Итоговый count: %d\n", finalCount);
         System.out.printf("Итоговое число записей − число вызовов record(value) в 4 потоках: %d\n", actualRecordCalls);
         System.out.printf("Итоговая сумма записей в бакетах: %d\n", totalBucketsSum);
 

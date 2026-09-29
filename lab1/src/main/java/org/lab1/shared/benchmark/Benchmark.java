@@ -9,7 +9,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Benchmark {
 
-
     private static double run(MetricsCollector collector, long[] latencies, int threadCount, int seconds) throws InterruptedException {
         CountDownLatch start = new CountDownLatch(1);
         AtomicBoolean stop = new AtomicBoolean(false);
