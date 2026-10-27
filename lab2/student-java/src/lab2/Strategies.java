@@ -67,6 +67,7 @@ public final class Strategies {
         private final List<Integer> selected = new ArrayList<>();
 
         private int position;
+        private int preemptions;
 
         public Dfs(int bound) {
             this.bound = bound;
@@ -75,17 +76,33 @@ public final class Strategies {
         /** Подготовиться к новому прогону (позиция в пути, счётчик вытеснений). */
         public void beginRun() {
             position = 0;
+            preemptions = 0;
         }
 
         public int pick(List<Integer> enabled, int last) {
+            boolean previousEnabled = last != -1 && enabled.contains(last);
+
             if (position == options.size()) {
-                options.add(new ArrayList<>(enabled));
+                List<Integer> variants = new ArrayList<>();
+
+                for (int candidate : enabled) {
+                    boolean preemption = previousEnabled && candidate != last;
+
+                    if (!preemption || preemptions < bound) {
+                        variants.add(candidate);
+                    }
+                }
+                options.add(variants);
                 selected.add(0);
             }
 
             List<Integer> variants = options.get(position);
             int variantIndex = selected.get(position);
             int next = variants.get(variantIndex);
+
+            if (previousEnabled && next != last) {
+                preemptions++;
+            }
 
             position++;
 
