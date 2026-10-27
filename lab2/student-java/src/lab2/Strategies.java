@@ -1,6 +1,8 @@
 package lab2;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /* Стратегии выбора следующего потока.
  * FirstAlive — этап 1, Replay — этап 2, RandomPick — этап 3, Dfs — этап 4 (ограничение bound — этап 5).
@@ -11,46 +13,123 @@ public final class Strategies {
     /** Всегда первый поток из enabled. */
     public static final class FirstAlive implements Strategy {
         public int pick(List<Integer> enabled, int last) {
-            throw new UnsupportedOperationException("TODO этап 1: FirstAlive.pick");
+            return enabled.getFirst();
         }
     }
 
     /** Проигрывает трассу: на i-м решении выбирает поток trace[i] ('A' -> 0, 'B' -> 1). */
     public static final class Replay implements Strategy {
-        public Replay(String trace) { }
+        private final String trace;
+        private int position;
+
+        public Replay(String trace) {
+            this.trace = trace;
+        }
 
         /** Сбросить позицию в трассе перед прогоном. */
-        public void beginRun() { }
+        public void beginRun() {
+            position = 0;
+        }
 
         public int pick(List<Integer> enabled, int last) {
-            throw new UnsupportedOperationException("TODO этап 2: Replay.pick");
+            if(position >= trace.length()){
+                throw new IllegalStateException("The trace ended before the run was complete");
+            }
+
+            int nextThread = trace.charAt(position) - 'A';
+            if(!enabled.contains(nextThread)){
+                throw new IllegalStateException("Thread " + trace.charAt(position) + " is currently unavailable");
+            }
+            position++;
+            return nextThread;
         }
     }
 
     /** Случайный поток: enabled.get(rnd.nextInt(enabled.size())), rnd = new java.util.Random(seed). */
     public static final class RandomPick implements Strategy {
-        public RandomPick(long seed) { }
+        private final Random random;
+
+        public RandomPick(long seed) {
+            this.random = new Random(seed);
+        }
 
         public int pick(List<Integer> enabled, int last) {
-            throw new UnsupportedOperationException("TODO этап 3: RandomPick.pick");
+            return enabled.get(random.nextInt(enabled.size()));
         }
     }
 
     /** Stateless DFS по дереву выборов: каждый прогон с нуля, повторяет префикс прошлого и берёт следующий вариант.
      *  bound — максимум вытеснений (этап 5); для dfs runner передаёт Integer.MAX_VALUE. */
     public static final class Dfs implements Strategy {
-        public Dfs(int bound) { }
+        private final int bound;
+
+        private final List<List<Integer>> options = new ArrayList<>();
+        private final List<Integer> selected = new ArrayList<>();
+
+        private int position;
+        private int preemptions;
+
+        public Dfs(int bound) {
+            this.bound = bound;
+        }
 
         /** Подготовиться к новому прогону (позиция в пути, счётчик вытеснений). */
-        public void beginRun() { }
+        public void beginRun() {
+            position = 0;
+            preemptions = 0;
+        }
 
         public int pick(List<Integer> enabled, int last) {
-            throw new UnsupportedOperationException("TODO этап 4: Dfs.pick");
+            boolean previousEnabled = last != -1 && enabled.contains(last);
+
+            if (position == options.size()) {
+                List<Integer> variants = new ArrayList<>();
+
+                for (int candidate : enabled) {
+                    boolean preemption = previousEnabled && candidate != last;
+
+                    if (!preemption || preemptions < bound) {
+                        variants.add(candidate);
+                    }
+                }
+                options.add(variants);
+                selected.add(0);
+            }
+
+            List<Integer> variants = options.get(position);
+            int variantIndex = selected.get(position);
+            int next = variants.get(variantIndex);
+
+            if (previousEnabled && next != last) {
+                preemptions++;
+            }
+
+            position++;
+
+            return next;
         }
 
         /** Выбрать следующий путь; false — дерево обойдено. */
         public boolean endRun() {
-            throw new UnsupportedOperationException("TODO этап 4: Dfs.endRun");
+            while (options.size() > position) {
+                options.removeLast();
+                selected.removeLast();
+            }
+
+            while (!options.isEmpty()) {
+                int step = options.size() - 1;
+                int nextChoice = selected.get(step) + 1;
+
+                if (nextChoice < options.get(step).size()) {
+                    selected.set(step, nextChoice);
+                    return true;
+                }
+
+                options.removeLast();
+                selected.removeLast();
+            }
+
+            return false;
         }
     }
 }
